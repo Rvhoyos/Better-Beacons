@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[9,)"
+#issueTrackerURL = ""
+license = "Apache 2.0"
+
+[[mods]]
+modId = "betterbeacons"
+version = "${version}"
+displayName = "Better Beacons"
+authors = "Monte_Carlo_Simulations"
+description = '''
+A standalone overhaul for the Minecraft beacon system.
+'''
+#logoFile = ""
+
+[[dependencies.betterbeacons]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.8,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.betterbeacons]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.8,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.betterbeacons]]
+modId = "architectury"
+type = "required"
+versionRange = "[17.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "betterbeacons.mixins.json"

@@ -1,0 +1,35 @@
+# Gradle and Build folders
+.gradle/
+build/
+**/build/
+bin/
+out/
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.lock
+
+# Minecraft / Modding specific
+**/run/
+**/.architectury/
+.gradle-loom-cache/
+captures/
+*gradle-*-project.cache
+memory.dump
+hs_err_pid*
+replay_mod_recordings/
