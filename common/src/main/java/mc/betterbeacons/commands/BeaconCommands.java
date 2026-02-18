@@ -11,7 +11,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -23,7 +23,7 @@ public class BeaconCommands {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                         CommandBuildContext buildContext) {
                 dispatcher.register(Commands.literal("betterbeacons")
-                                .requires(source -> source.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.literal("reload")
                                                 .executes(c -> {
                                                         BeaconConfig.load();
@@ -49,26 +49,26 @@ public class BeaconCommands {
                                                         return 1;
                                                 }))
                                 .then(Commands.literal("set")
-                                                .then(Commands.argument("block", ResourceLocationArgument.id())
+                                                .then(Commands.argument("block", IdentifierArgument.id())
                                                                 .suggests(BeaconCommands::suggestBlocks)
                                                                 .executes(c -> setBlock(c.getSource(),
-                                                                                ResourceLocationArgument
+                                                                                IdentifierArgument
                                                                                                 .getId(c, "block")
                                                                                                 .toString(),
                                                                                 3))
                                                                 .then(Commands.argument("radius",
                                                                                 IntegerArgumentType.integer(1, 100))
                                                                                 .executes(c -> setBlock(c.getSource(),
-                                                                                                ResourceLocationArgument
+                                                                                                IdentifierArgument
                                                                                                                 .getId(c, "block")
                                                                                                                 .toString(),
                                                                                                 IntegerArgumentType
                                                                                                                 .getInteger(c, "radius"))))))
                                 .then(Commands.literal("remove")
-                                                .then(Commands.argument("block", ResourceLocationArgument.id())
+                                                .then(Commands.argument("block", IdentifierArgument.id())
                                                                 .suggests(BeaconCommands::suggestConfiguredBlocks)
                                                                 .executes(c -> removeBlock(c.getSource(),
-                                                                                ResourceLocationArgument
+                                                                                IdentifierArgument
                                                                                                 .getId(c, "block")
                                                                                                 .toString())))));
         }

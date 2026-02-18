@@ -52,7 +52,7 @@ public abstract class BeaconBlockEntityMixin extends BlockEntity {
     @Inject(method = "tick", at = @At("TAIL"))
     private static void tick(Level level, BlockPos pos, BlockState state, BeaconBlockEntity blockEntity,
             CallbackInfo ci) {
-        if (!BeaconConfig.ENABLE_CUSTOM_BEACONS || level.isClientSide)
+        if (!BeaconConfig.ENABLE_CUSTOM_BEACONS || level.isClientSide())
             return;
 
         // Perform registration check every 4 seconds (80 ticks).
@@ -65,6 +65,8 @@ public abstract class BeaconBlockEntityMixin extends BlockEntity {
     private static void updateBeaconRegistration(Level level, BlockPos pos, BeaconBlockEntityMixin beacon) {
         if (beacon.levels > 0 && beacon.primaryPower != null) {
             // It has levels! Now we must determine the Radius based on material.
+            // Using vanilla levels to determine structure size, then checking config for
+            // range.
             int radius = scanForRadius(level, pos, beacon.levels);
 
             if (radius > -1) { // -1 means invalid structure
@@ -75,13 +77,13 @@ public abstract class BeaconBlockEntityMixin extends BlockEntity {
                         beacon.primaryPower,
                         beacon.secondaryPower);
 
-                BeaconManager.get().register(pos, level.dimension().location().toString(), info);
+                BeaconManager.get().register(pos, level.dimension().identifier().toString(), info);
             } else {
-                BeaconManager.get().unregister(pos, level.dimension().location().toString());
+                BeaconManager.get().unregister(pos, level.dimension().identifier().toString());
             }
         } else {
             // Invalid or no power
-            BeaconManager.get().unregister(pos, level.dimension().location().toString());
+            BeaconManager.get().unregister(pos, level.dimension().identifier().toString());
         }
     }
 

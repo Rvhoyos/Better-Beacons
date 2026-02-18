@@ -31,7 +31,7 @@ You build the pyramid just like in vanilla Minecraft. Thanks to our dynamic tag 
 Level 2 OP permission required.
 
 Manage your beacon settings directly in-game:
-- `/betterbeacons set <block> [radius]` - Add or change a block's range (example: `/betterbeacons set minecraft:dirt 3`).
+- `/betterbeacons set <block> [size]` - Add or change a block's range (example: `/betterbeacons set minecraft:dirt 3` for a 3x3 chunk area).
 - `/betterbeacons remove <block>` - Stop a specific block from working as a custom beacon base.
 - `/betterbeacons list` - See every block that currently has a custom range.
 - `/betterbeacons reload` - Refresh settings if you manually edited the config file.
@@ -39,7 +39,7 @@ Manage your beacon settings directly in-game:
 ---
 
 ## Advanced Customization
-Server owners can find the configuration file at `config/betterbeacons.json`. You can add any block ID here and set its chunk diameter. Size 3 means a radius of 1 chunk around the center.
+Server owners can find the configuration file at `config/betterbeacons.json`. You can add any block ID here and set its chunk diameter. Size 3 means a 3x3 chunk area centered on the beacon.
 
 ```json
 {
@@ -51,14 +51,6 @@ Server owners can find the configuration file at `config/betterbeacons.json`. Yo
   }
 }
 ```
-
 ---
-
-## Roadmap
-We are working to bring Better Beacons to more versions of Minecraft.
-- [ ] **1.21.10 Support** - Coming Soon
-- [ ] **1.21.11 Support** - Coming Soon
-- [ ] **More Effect Types** - Planned
-
 ## License
 Copyright (c) 2026 Monte_Carlo_Simulations. Licensed under the Apache License, Version 2.0.

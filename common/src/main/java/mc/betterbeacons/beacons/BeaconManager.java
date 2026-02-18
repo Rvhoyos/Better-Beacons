@@ -64,7 +64,7 @@ public class BeaconManager {
             // We need a server level to check for blocks
             net.minecraft.server.level.ServerLevel level = null;
             for (net.minecraft.server.level.ServerLevel world : server.getAllLevels()) {
-                if (world.dimension().location().toString().equals(dimId)) {
+                if (world.dimension().identifier().toString().equals(dimId)) {
                     level = world;
                     break;
                 }
@@ -96,7 +96,7 @@ public class BeaconManager {
     }
 
     private void applyEffectsToPlayer(ServerPlayer player) {
-        String dimId = player.level().dimension().location().toString();
+        String dimId = player.level().dimension().identifier().toString();
         if (!activeBeacons.containsKey(dimId))
             return;
 

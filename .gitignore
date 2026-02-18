@@ -33,3 +33,5 @@ captures/
 memory.dump
 hs_err_pid*
 replay_mod_recordings/
+
+.envrc

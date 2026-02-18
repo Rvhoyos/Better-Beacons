@@ -16,21 +16,21 @@ A standalone overhaul for the Minecraft beacon system.
 [[dependencies.betterbeacons]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.8,)"
+versionRange = "[21.11.38,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.betterbeacons]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.8,)"
+versionRange = "[1.21.11,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.betterbeacons]]
 modId = "architectury"
 type = "required"
-versionRange = "[17.0.8,)"
+versionRange = "[19.0.1,)"
 ordering = "AFTER"
 side = "BOTH"
 

@@ -1,5 +1,5 @@
 plugins {
-    id 'dev.architectury.loom' version '1.11-SNAPSHOT' apply false
+    id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '8.3.6' apply false
 }
@@ -43,12 +43,8 @@ subprojects {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
         mappings loom.layered() {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-1.21.8:2025.09.14@zip")
+            parchment("org.parchmentmc.data:parchment-1.21.11:${rootProject.parchment_version}@zip")
         }
-                // --- Added so common module can see CommandDispatcher ---
-        // Brigadier is a Mojang library already bundled with Minecraft.
-        // This line only exposes its classes at compile-time.
-        compileOnly("com.mojang:brigadier:1.0.500")
     }
 
     java {
