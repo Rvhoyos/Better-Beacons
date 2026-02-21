@@ -7,7 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.level.Level;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BeaconBeamOwner;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +18,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,6 +42,16 @@ public abstract class BeaconBlockEntityMixin extends BlockEntity {
 
     public BeaconBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
+    }
+
+    @Inject(method = "getBeamSections", at = @At("HEAD"), cancellable = true)
+    private void hideBeamWithCarpet(CallbackInfoReturnable<List<BeaconBeamOwner.Section>> cir) {
+        if (BeaconConfig.HIDE_BEAM_WITH_CARPET && this.level != null) {
+            BlockState above = this.level.getBlockState(this.worldPosition.above());
+            if (above.is(BlockTags.WOOL_CARPETS)) {
+                cir.setReturnValue(Collections.emptyList());
+            }
+        }
     }
 
     @Inject(method = "applyEffects", at = @At("HEAD"), cancellable = true)

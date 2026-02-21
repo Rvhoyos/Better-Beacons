@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
  */
 public final class BeaconConfig {
     public static boolean ENABLE_CUSTOM_BEACONS = true;
+    public static boolean HIDE_BEAM_WITH_CARPET = true;
     public static java.util.Map<String, Integer> BEACON_BLOCK_SIZES = new java.util.HashMap<>();
 
     private BeaconConfig() {
@@ -21,6 +22,10 @@ public final class BeaconConfig {
 
         if (root.has("enable_custom_beacons")) {
             ENABLE_CUSTOM_BEACONS = root.get("enable_custom_beacons").getAsBoolean();
+        }
+
+        if (root.has("hide_beam_with_carpet")) {
+            HIDE_BEAM_WITH_CARPET = root.get("hide_beam_with_carpet").getAsBoolean();
         }
 
         if (root.has("beacon_blocks") && root.get("beacon_blocks").isJsonObject()) {
