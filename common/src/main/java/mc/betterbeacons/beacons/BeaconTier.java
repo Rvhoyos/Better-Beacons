@@ -3,6 +3,10 @@ package mc.betterbeacons.beacons;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+/**
+ * Enum representing the material tiers of a beacon pyramid.
+ * Each tier corresponds to a specific material and its associated range.
+ */
 public enum BeaconTier {
     NONE(0, 0),
     IRON(1, 24), // 3x3 Chunks (~24 blocks radius)
@@ -11,14 +15,22 @@ public enum BeaconTier {
     DIAMOND(3, 56), // 7x7 Chunks
     NETHERITE(4, 72); // 9x9 Chunks
 
+    /** The vanilla level requirement for this tier. */
     public final int level;
-    public final int rangeBlocks; // Approximate radius for range checking
+    /** Approximate radius in blocks for range checking. */
+    public final int rangeBlocks;
 
     BeaconTier(int level, int rangeBlocks) {
         this.level = level;
         this.rangeBlocks = rangeBlocks;
     }
 
+    /**
+     * Determines the tier based on the provided BlockState.
+     * 
+     * @param state The block state to check.
+     * @return The corresponding BeaconTier, or NONE if not a valid beacon base.
+     */
     public static BeaconTier fromBlock(BlockState state) {
         if (state.is(Blocks.NETHERITE_BLOCK))
             return NETHERITE;
@@ -33,6 +45,11 @@ public enum BeaconTier {
         return NONE;
     }
 
+    /**
+     * Calculates the effective chunk radius for this tier based on mod configuration.
+     * 
+     * @return The radius in chunks.
+     */
     public int getChunkRadius() {
         // Read from config. Default to hardcoded values if missing (safe fallback)
         int size = mc.betterbeacons.config.BeaconConfig.BEACON_BLOCK_SIZES.getOrDefault(this.name().toLowerCase(), 3);

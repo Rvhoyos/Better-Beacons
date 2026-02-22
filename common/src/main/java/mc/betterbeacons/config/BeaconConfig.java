@@ -1,39 +1,46 @@
 package mc.betterbeacons.config;
 
-import com.google.gson.JsonObject;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * In-memory storage for the current mod configuration.
- * Values are populated from JSON via {@link ConfigManager}.
+ * Static container for mod configuration values.
+ * This class serves as the central data store for the mod's settings during runtime.
+ * Persistence is handled by the {@link ConfigManager}.
  */
-public final class BeaconConfig {
+public class BeaconConfig {
+    /** Whether custom beacon effect and range logic is enabled. */
     public static boolean ENABLE_CUSTOM_BEACONS = true;
+    
+    /** Whether placing a carpet on top of a beacon should hide its beam. */
     public static boolean HIDE_BEAM_WITH_CARPET = true;
-    public static java.util.Map<String, Integer> BEACON_BLOCK_SIZES = new java.util.HashMap<>();
 
-    private BeaconConfig() {
+    /** 
+     * Map of block identifiers to their effective beacon radius (expressed as chunk diameter).
+     * For example, a value of 3 means a 3x3 chunk area centered on the beacon.
+     */
+    public static Map<String, Integer> BEACON_BLOCK_SIZES = new HashMap<>();
+
+    static {
+        // Initial defaults
+        BEACON_BLOCK_SIZES.put("minecraft:iron_block", 3);
+        BEACON_BLOCK_SIZES.put("minecraft:gold_block", 3);
+        BEACON_BLOCK_SIZES.put("minecraft:emerald_block", 5);
+        BEACON_BLOCK_SIZES.put("minecraft:diamond_block", 7);
+        BEACON_BLOCK_SIZES.put("minecraft:netherite_block", 9);
     }
 
     /**
-     * Loads settings from the configuration file into memory.
+     * Triggers a reload of the configuration from the JSON file on disk.
      */
     public static void load() {
-        JsonObject root = ConfigManager.readOrCreate();
+        ConfigManager.load();
+    }
 
-        if (root.has("enable_custom_beacons")) {
-            ENABLE_CUSTOM_BEACONS = root.get("enable_custom_beacons").getAsBoolean();
-        }
-
-        if (root.has("hide_beam_with_carpet")) {
-            HIDE_BEAM_WITH_CARPET = root.get("hide_beam_with_carpet").getAsBoolean();
-        }
-
-        if (root.has("beacon_blocks") && root.get("beacon_blocks").isJsonObject()) {
-            BEACON_BLOCK_SIZES.clear();
-            JsonObject bs = root.getAsJsonObject("beacon_blocks");
-            for (String key : bs.keySet()) {
-                BEACON_BLOCK_SIZES.put(key, bs.get(key).getAsInt());
-            }
-        }
+    /**
+     * Saves the current in-memory configuration state to the JSON file on disk.
+     */
+    public static void save() {
+        ConfigManager.save();
     }
 }

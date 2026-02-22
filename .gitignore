@@ -1,37 +1,35 @@
-# Gradle and Build folders
-.gradle/
+# Gradle
+.gradle
 build/
-**/build/
-bin/
-out/
-gradle-app.setting
-!gradle/wrapper/gradle-wrapper.jar
+!/build.gradle
+!/settings.gradle
 
-# IDE files
-.vscode/
+# Java
+*.class
+*.log
+bin/
+**/bin/
+
+# IDE
 .idea/
 *.iml
-*.iws
-*.ipr
-.project
-.classpath
-.settings/
-.cache/
-
-# OS files
-.DS_Store
-Thumbs.db
+.vscode/
 *.swp
-*.lock
+*.swo
+.DS_Store
 
-# Minecraft / Modding specific
+# Modding
 **/run/
-**/.architectury/
-.gradle-loom-cache/
-captures/
-*gradle-*-project.cache
-memory.dump
-hs_err_pid*
-replay_mod_recordings/
+**/runs/
+*.accesswidener
+.architectury-transformer/
+architectury-cache/
+loom-cache/
 
+# Project Specific
+config/
+**/config/
+betterbeacons.json
 .envrc
+*.log
+*.log.gz

@@ -1,56 +1,52 @@
 # Better Beacons
-**A powerful, flexible overhaul for Minecraft beacons.**
 
-Better Beacons makes beacons more useful by giving them massive, chunk based ranges and letting you use almost any block as a base. Effects stick with you even if the beacon unloads, making it the perfect tool for large bases and survival projects.
+A powerful, server-sided overhaul for the Minecraft beacon system. Better Beacons allows you to customize the effective range of beacons based on the blocks used in their pyramid, supporting "absurd" ranges across entire dimensions.
 
-## Key Features
+## Features
 
-- **Custom Bases**: Use any block type you want. From Iron to Netherite, or even custom modded blocks.
-- **Massive Range**: Beacons now cover entire square areas of chunks. No more losing your haste effect because you walked 50 blocks away.
-- **Smart Material Logic**: When you mix blocks in a pyramid, the beacon's range is decided by the weakest block used. Build consistent layers for the best results.
-- **Persistent Effects**: Your beacon powers stay active as long as you're in range, even if the server unloads the beacon's area to save memory.
-- **Server Side Only**: No client mod needed. Your friends can join with a vanilla game and everything will work perfectly.
+- **Configurable Ranges**: Define custom chunk-based radius for any block type.
+- **Absurd Range Support**: Beacons can affect players across massive distances, persisting even when the beacon's chunk is unloaded.
+- **Carpet Hiding**: Place a wool carpet directly on top of a beacon to hide its beam while maintaining its effects.
+- **Server-Sided**: Works with vanilla clients; no mod installation required for players.
+- **Dynamic Updates**: Changes to the configuration are applied immediately, including visual synchronization update messages.
 
----
+## Commands
 
-## Player Guide
+- `/betterbeacons list`: Lists all configured beacon blocks and their radii.
+- `/betterbeacons set <block> [radius]`: Adds or updates a block's radius (radius is diameter in chunks).
+- `/betterbeacons remove <block>`: Removes a block from the custom beacon list.
+- `/betterbeacons reload`: Reloads the configuration from disk.
 
-### How Ranges Work
-Instead of blocks, this mod counts Chunks (16x16 areas).
-- **Iron/Gold**: Covers a 3x3 chunk area.
-- **Emerald**: Covers a 5x5 chunk area.
-- **Diamond**: Covers a 7x7 chunk area.
-- **Netherite**: Covers a massive 9x9 chunk area.
+## Installation
 
-### Building Your Beacon
-You build the pyramid just like in vanilla Minecraft. Thanks to our dynamic tag engine, any block you configure as a beacon base will automatically show a beam and work perfectly for all players, even those on vanilla clients.
+### Fabric
+1. Install [Fabric Loader](https://fabricmc.net/).
+2. Drop the `betterbeacons-fabric-1.21.11.jar` into your `mods` folder.
+3. Ensure [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) is present.
 
----
+### NeoForge
+1. Install [NeoForge](https://neoforged.net/).
+2. Drop the `betterbeacons-neoforge-1.21.11.jar` into your `mods` folder.
 
-## Admin Commands
-Level 2 OP permission required.
+## Configuration
 
-Manage your beacon settings directly in-game:
-- `/betterbeacons set <block> [size]` - Add or change a block's range (example: `/betterbeacons set minecraft:dirt 3` for a 3x3 chunk area).
-- `/betterbeacons remove <block>` - Stop a specific block from working as a custom beacon base.
-- `/betterbeacons list` - See every block that currently has a custom range.
-- `/betterbeacons reload` - Refresh settings if you manually edited the config file.
-
----
-
-## Advanced Customization
-Server owners can find the configuration file at `config/betterbeacons.json`. You can add any block ID here and set its chunk diameter. Size 3 means a 3x3 chunk area centered on the beacon.
+The configuration is stored in `config/betterbeacons.json`. You can modify this file directly or use the in-game commands.
 
 ```json
 {
   "enable_custom_beacons": true,
+  "hide_beam_with_carpet": true,
   "beacon_blocks": {
     "minecraft:iron_block": 3,
+    "minecraft:gold_block": 3,
+    "minecraft:emerald_block": 5,
     "minecraft:diamond_block": 7,
-    "minecraft:netherite_block": 9
+    "minecraft:netherite_block": 9,
+    "minecraft:dirt": 256
   }
 }
 ```
----
+
 ## License
-Copyright (c) 2026 Monte_Carlo_Simulations. Licensed under the Apache License, Version 2.0.
+
+This project is licensed under the Apache-2.0 License.

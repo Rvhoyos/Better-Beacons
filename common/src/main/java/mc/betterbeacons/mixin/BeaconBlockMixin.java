@@ -14,9 +14,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+/**
+ * Mixin for the {@link BeaconBlock} class to handle custom interaction behavior.
+ */
 @Mixin(BeaconBlock.class)
 public abstract class BeaconBlockMixin {
 
+    /**
+     * Intercepts beacon interaction to allow placing carpets directly on top
+     * without opening the beacon GUI.
+     */
     @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
     private void allowCarpetPlacement(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {

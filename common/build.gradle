@@ -1,13 +1,33 @@
-architectury {
-    common rootProject.enabled_platforms.split(',')
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+plugins {
+    alias(libs.plugins.moddevgradle)
+}
+
+def libsCatalog = project.extensions.getByType(VersionCatalogsExtension).named("libs")
+
+neoForge {
+    neoFormVersion = libsCatalog.findVersion('neoform').get().requiredVersion
+
+    if (file("src/main/resources/META-INF/accesstransformer.cfg").exists()) {
+        accessTransformers.files.from(file("src/main/resources/META-INF/accesstransformer.cfg"))
+        validateAccessTransformers = true
+    }
+
+    parchment.minecraftVersion = libsCatalog.findVersion('parchment-minecraft').get().requiredVersion
+    parchment.mappingsVersion = libsCatalog.findVersion('parchment').get().requiredVersion
 }
 
 dependencies {
-    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
-    // which get remapped to the correct annotations on each platform.
-    // Do NOT use other classes from Fabric Loader.
-    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    compileOnly(libs.mixin)
+    compileOnly(libs.mixinextras.common)
+}
 
-    // Architectury API. This is optional, and you can comment it out if you don't need it.
-    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = base.archivesName.get()
+        }
+    }
 }

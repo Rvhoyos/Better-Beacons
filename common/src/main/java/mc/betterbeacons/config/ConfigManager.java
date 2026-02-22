@@ -3,110 +3,98 @@ package mc.betterbeacons.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import dev.architectury.platform.Platform;
+import com.google.gson.JsonElement;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Handles JSON configuration I/O for the Better Beacons mod.
- * Manages the betterbeacons.json file, including default generation and
- * structural validation.
+ * This class is responsible for synchronizing the {@link BeaconConfig} with the 
+ * physical configuration file on disk.
  */
 public final class ConfigManager {
     private static final String FILE_NAME = "betterbeacons.json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
+    /** The platform-specific configuration directory. This must be initialized by the loader during startup. */
+    public static Path configDir;
+
     private ConfigManager() {
     }
 
+    /**
+     * Gets the full path to the configuration file.
+     * 
+     * @return The path to betterbeacons.json.
+     */
     public static Path path() {
-        return Platform.getConfigFolder().resolve(FILE_NAME);
+        if (configDir == null) {
+            return Path.of("config").resolve(FILE_NAME);
+        }
+        return configDir.resolve(FILE_NAME);
     }
 
     /**
-     * Loads the configuration from disk, creating it with default values if it
-     * doesn't exist.
-     * Also performs a "lazy repair" by adding missing fields and removing invalid
-     * data.
+     * Loads the configuration from disk and populates the static fields in {@link BeaconConfig}.
+     * If the file does not exist, a default one will be created.
      */
-    public static JsonObject readOrCreate() {
+    public static void load() {
         Path p = path();
         try {
-            Files.createDirectories(p.getParent());
-            if (!Files.exists(p) || Files.size(p) == 0) {
-                JsonObject root = defaultJson();
-                Files.writeString(p, GSON.toJson(root), StandardCharsets.UTF_8);
-                return root;
+            if (!Files.exists(p)) {
+                save();
+                return;
             }
             String s = Files.readString(p, StandardCharsets.UTF_8);
             JsonObject obj = GSON.fromJson(s, JsonObject.class);
-            if (obj == null)
-                obj = defaultJson();
-            boolean dirty = false;
-
-            if (!obj.has("enable_custom_beacons")) {
-                obj.addProperty("enable_custom_beacons", true);
-                dirty = true;
-            }
-            if (!obj.has("beacon_blocks") || !obj.get("beacon_blocks").isJsonObject()) {
-                obj.add("beacon_blocks", defaultBeaconBlocksJson());
-                dirty = true;
+            if (obj == null) {
+                save();
+                return;
             }
 
-            if (dirty) {
-                Files.writeString(p, GSON.toJson(obj), StandardCharsets.UTF_8);
+            if (obj.has("enable_custom_beacons")) {
+                BeaconConfig.ENABLE_CUSTOM_BEACONS = obj.get("enable_custom_beacons").getAsBoolean();
             }
-            return obj;
-        } catch (JsonSyntaxException e) {
-            // Malformed JSON — throw a descriptive error for callers to display
-            throw new ConfigParseException(
-                    "Malformed JSON in " + FILE_NAME + ": " + e.getMessage(), e);
-        } catch (IOException e) {
-            // Fall back to default in-memory config when IO fails
-            return defaultJson();
+            
+            if (obj.has("hide_beam_with_carpet")) {
+                BeaconConfig.HIDE_BEAM_WITH_CARPET = obj.get("hide_beam_with_carpet").getAsBoolean();
+            }
+
+            if (obj.has("beacon_blocks") && obj.get("beacon_blocks").isJsonObject()) {
+                JsonObject blocks = obj.getAsJsonObject("beacon_blocks");
+                BeaconConfig.BEACON_BLOCK_SIZES.clear();
+                for (Map.Entry<String, JsonElement> entry : blocks.entrySet()) {
+                    BeaconConfig.BEACON_BLOCK_SIZES.put(entry.getKey(), entry.getValue().getAsInt());
+                }
+            } else if (BeaconConfig.BEACON_BLOCK_SIZES.isEmpty()) {
+                applyDefaults();
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to load Better Beacons config: " + e.getMessage());
+            applyDefaults();
         }
     }
 
-    /**
-     * Exception thrown when the betterbeacons.json file contains syntax errors
-     * that prevent standard GSON parsing.
-     */
-    public static class ConfigParseException extends RuntimeException {
-        public ConfigParseException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
-    private static JsonObject defaultJson() {
-        JsonObject root = new JsonObject();
-        root.addProperty("enable_custom_beacons", true);
-        root.add("beacon_blocks", defaultBeaconBlocksJson());
-        return root;
+    private static void applyDefaults() {
+        BeaconConfig.BEACON_BLOCK_SIZES.put("minecraft:iron_block", 3);
+        BeaconConfig.BEACON_BLOCK_SIZES.put("minecraft:gold_block", 3);
+        BeaconConfig.BEACON_BLOCK_SIZES.put("minecraft:emerald_block", 5);
+        BeaconConfig.BEACON_BLOCK_SIZES.put("minecraft:diamond_block", 7);
+        BeaconConfig.BEACON_BLOCK_SIZES.put("minecraft:netherite_block", 9);
     }
 
     /**
-     * Returns a JSON object containing the default block-to-radius mappings.
-     * Radii are expressed in "diameter of chunks" (e.g. 3 = 3x3 chunks).
+     * Saves the current static state of {@link BeaconConfig} to the disk.
      */
-    static JsonObject defaultBeaconBlocksJson() {
-        JsonObject bs = new JsonObject();
-        bs.addProperty("minecraft:iron_block", 3);
-        bs.addProperty("minecraft:gold_block", 3);
-        bs.addProperty("minecraft:emerald_block", 5);
-        bs.addProperty("minecraft:diamond_block", 7);
-        bs.addProperty("minecraft:netherite_block", 9);
-        return bs;
-    }
-
     public static void save() {
-        JsonObject root = defaultJson();
-
-        // Update root with current values
+        JsonObject root = new JsonObject();
         root.addProperty("enable_custom_beacons", BeaconConfig.ENABLE_CUSTOM_BEACONS);
+        root.addProperty("hide_beam_with_carpet", BeaconConfig.HIDE_BEAM_WITH_CARPET);
 
         JsonObject bs = new JsonObject();
         for (var entry : BeaconConfig.BEACON_BLOCK_SIZES.entrySet()) {
@@ -116,19 +104,8 @@ public final class ConfigManager {
 
         try {
             Path p = path();
+            Files.createDirectories(p.getParent());
             Files.writeString(p, GSON.toJson(root), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Deletes the config file and reloads defaults.
-     */
-    public static void resetToFactory() {
-        try {
-            Files.deleteIfExists(path());
-            BeaconConfig.load();
         } catch (IOException e) {
             e.printStackTrace();
         }

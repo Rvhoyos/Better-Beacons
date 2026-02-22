@@ -2,39 +2,90 @@ package mc.betterbeacons.beacons;
 
 import mc.betterbeacons.config.BeaconConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages active beacons across all dimensions.
- * Handles beacon registration, persistence, and periodic effect application
- * based on chunk-based ranges.
+ * This class handles registration, validation, and the logic for applying
+ * custom effects based on configurable chunk-based ranges.
  */
 public class BeaconManager {
     private static final BeaconManager INSTANCE = new BeaconManager();
-    // Map<DimensionID, Map<BlockPos, BeaconInfo>>
+    
+    /** Map of active beacons, keyed by dimension ID then by block position. */
     private final Map<String, Map<BlockPos, BeaconInfo>> activeBeacons = new ConcurrentHashMap<>();
 
     private BeaconManager() {
     }
 
+    /**
+     * Gets the singleton instance of the BeaconManager.
+     * 
+     * @return The singleton instance.
+     */
     public static BeaconManager get() {
         return INSTANCE;
     }
 
     /**
-     * Registers a new or updated beacon.
+     * Updates or unregisters a beacon based on its current state.
+     * This method is called during the beacon's tick to ensure the registration
+     * stays in sync with the physical structure.
      * 
-     * @param info Metadata containing position, dimension, radius and effects.
+     * @param level     The level containing the beacon.
+     * @param pos       The position of the beacon.
+     * @param levels    The number of pyramid levels.
+     * @param primary   The primary effect.
+     * @param secondary The secondary effect.
      */
-    public void register(BlockPos pos, String dimensionId, BeaconInfo info) {
+    public void updateBeaconRegistration(Level level, BlockPos pos, int levels, 
+                                        @Nullable Holder<MobEffect> primary, 
+                                        @Nullable Holder<MobEffect> secondary) {
+        if (level.isClientSide()) return;
+
+        if (levels > 0 && primary != null) {
+            ScanResult result = scanForRadius(level, pos, levels);
+
+            if (result.radius() > -1) {
+                BeaconInfo info = new BeaconInfo(
+                        pos,
+                        level.dimension(),
+                        result.radius(),
+                        result.weakestBlockId(),
+                        primary,
+                        secondary);
+
+                register(pos, level.dimension().identifier().toString(), info);
+            } else {
+                unregister(pos, level.dimension().identifier().toString());
+            }
+        } else {
+            unregister(pos, level.dimension().identifier().toString());
+        }
+    }
+
+    private void register(BlockPos pos, String dimensionId, BeaconInfo info) {
         activeBeacons.computeIfAbsent(dimensionId, k -> new ConcurrentHashMap<>()).put(pos, info);
     }
 
+    /**
+     * Unregisters a beacon from the management map.
+     * 
+     * @param pos         The position of the beacon.
+     * @param dimensionId The string identifier of the dimension.
+     */
     public void unregister(BlockPos pos, String dimensionId) {
         if (activeBeacons.containsKey(dimensionId)) {
             activeBeacons.get(dimensionId).remove(pos);
@@ -42,10 +93,47 @@ public class BeaconManager {
     }
 
     /**
-     * Main tick loop for beacon processing.
-     * Runs every 80 game ticks (4 seconds) to match vanilla beacon frequency.
-     * Performs validation of registered beacons and applies effects to nearby
-     * players.
+     * Clears all registered beacons from all dimensions.
+     */
+    public void clearAll() {
+        activeBeacons.clear();
+    }
+
+    /**
+     * Scans the beacon pyramid to determine the weakest block type and its associated radius.
+     */
+    private ScanResult scanForRadius(Level level, BlockPos pos, int levels) {
+        int minRadius = 99;
+        String weakestBlockId = null;
+        boolean foundAny = false;
+
+        for (int i = 1; i <= levels; i++) {
+            int y = pos.getY() - i;
+            int radius = i;
+
+            for (int x = pos.getX() - radius; x <= pos.getX() + radius; x++) {
+                for (int z = pos.getZ() - radius; z <= pos.getZ() + radius; z++) {
+                    BlockState state = level.getBlockState(new BlockPos(x, y, z));
+                    String key = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+
+                    int blockRadius = BeaconConfig.BEACON_BLOCK_SIZES.getOrDefault(key, 3);
+                    int chunkRadius = (blockRadius - 1) / 2;
+                    if (chunkRadius < minRadius) {
+                        minRadius = chunkRadius;
+                        weakestBlockId = key;
+                    }
+                    foundAny = true;
+                }
+            }
+        }
+        return new ScanResult(foundAny ? Math.max(0, minRadius) : 0, weakestBlockId);
+    }
+
+    /**
+     * Main tick loop executed on the server.
+     * Validates that registered beacons still exist and applies effects to all players.
+     * 
+     * @param server The Minecraft server instance.
      */
     public void tick(MinecraftServer server) {
         if (!BeaconConfig.ENABLE_CUSTOM_BEACONS)
@@ -53,7 +141,6 @@ public class BeaconManager {
         if (server.getTickCount() % 80 != 0)
             return;
 
-        // Cleanup invalid beacons and apply effects
         String[] dimIds = activeBeacons.keySet().toArray(new String[0]);
 
         for (String dimId : dimIds) {
@@ -61,7 +148,6 @@ public class BeaconManager {
             if (beacons == null || beacons.isEmpty())
                 continue;
 
-            // We need a server level to check for blocks
             net.minecraft.server.level.ServerLevel level = null;
             for (net.minecraft.server.level.ServerLevel world : server.getAllLevels()) {
                 if (world.dimension().identifier().toString().equals(dimId)) {
@@ -71,11 +157,8 @@ public class BeaconManager {
             }
 
             if (level == null)
-                continue; // Dimension not loaded?
+                continue;
 
-            // Validation: Remove beacons if their block entity is missing or invalid.
-            // Note: We skip validation for unloaded chunks to support cross-chunk
-            // persistence.
             java.util.Iterator<Map.Entry<BlockPos, BeaconInfo>> iterator = beacons.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<BlockPos, BeaconInfo> entry = iterator.next();
@@ -95,6 +178,9 @@ public class BeaconManager {
         }
     }
 
+    /**
+     * Applies configured beacon effects to a player if they are within the chunk-based radius.
+     */
     private void applyEffectsToPlayer(ServerPlayer player) {
         String dimId = player.level().dimension().identifier().toString();
         if (!activeBeacons.containsKey(dimId))
@@ -104,22 +190,25 @@ public class BeaconManager {
 
         for (BeaconInfo beacon : activeBeacons.get(dimId).values()) {
             ChunkPos beaconChunk = new ChunkPos(beacon.pos());
+            
             int radius = beacon.radius();
+            if (beacon.weakestBlockId() != null) {
+                Integer configSize = BeaconConfig.BEACON_BLOCK_SIZES.get(beacon.weakestBlockId());
+                if (configSize != null) {
+                    radius = Math.max(0, (configSize - 1) / 2);
+                } else {
+                    radius = -1; 
+                }
+            }
 
-            // Apply effects if player is within the rectangular chunk range.
-            if (Math.abs(playerChunk.x - beaconChunk.x) <= radius &&
+            if (radius >= 0 && 
+                    Math.abs(playerChunk.x - beaconChunk.x) <= radius &&
                     Math.abs(playerChunk.z - beaconChunk.z) <= radius) {
 
-                int duration = 300; // 15 seconds
+                int duration = 300;
 
                 if (beacon.primary() != null) {
-                    // "Secondary Promotion": Apply Level II if radius is >= 4 (9x9 chunks)
-                    // and primary/secondary effects match.
-                    int primaryAmp = 0;
-                    if (beacon.radius() >= 4 && beacon.primary().equals(beacon.secondary())) {
-                        primaryAmp = 1;
-                    }
-
+                    int primaryAmp = (radius >= 4 && beacon.primary().equals(beacon.secondary())) ? 1 : 0;
                     player.addEffect(new MobEffectInstance(beacon.primary(), duration, primaryAmp, true, true));
                 }
 
@@ -129,4 +218,9 @@ public class BeaconManager {
             }
         }
     }
+
+    /**
+     * Internal result record for pyramid scanning.
+     */
+    private record ScanResult(int radius, String weakestBlockId) {}
 }

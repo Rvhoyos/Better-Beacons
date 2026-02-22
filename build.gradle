@@ -1,73 +1,119 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
 plugins {
-    id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.gradleup.shadow' version '8.3.6' apply false
+    alias(libs.plugins.minotaur) apply false
+    alias(libs.plugins.curseforgegradle) apply false
+    alias(libs.plugins.ideaext)
 }
 
-architectury {
-    minecraft = project.minecraft_version
-}
+// Get the version catalog object so we can query it dynamically
+def libsCatalog = project.extensions.getByType(VersionCatalogsExtension).named("libs")
 
 allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
 
     repositories {
+        mavenCentral()
         maven {
             name = 'ParchmentMC'
             url = 'https://maven.parchmentmc.org'
+        }
+        maven {
+            name = "Fabric"
+            url = "https://maven.fabricmc.net"
+        }
+        maven {
+            name = "NeoForge"
+            url = "https://maven.neoforged.net/releases"
+        }
+        maven {
+            name = "Forge"
+            url = "https://maven.minecraftforge.net/"
+        }
+        maven {
+            name = "SpongeForge"
+            url = "https://repo.spongepowered.org/repository/maven-public"
         }
     }
 }
 
 subprojects {
-    apply plugin: 'dev.architectury.loom'
-    apply plugin: 'architectury-plugin'
+    apply plugin: 'java'
     apply plugin: 'maven-publish'
 
-    base {
-        // Set up a suffixed format for the mod jar names, e.g. `example-fabric`.
-        archivesName = "$rootProject.archives_name-$project.name"
-    }
-
-    repositories {
-        // Add repositories to retrieve artifacts from in here.
-        // Loom adds the essential maven repositories automatically.
-    }
-
-    loom {
-        silentMojangMappingsLicense()
-    }
-
-    dependencies {
-        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-1.21.11:${rootProject.parchment_version}@zip")
-        }
-    }
-
     java {
+        toolchain.languageVersion = JavaLanguageVersion.of(21)
         withSourcesJar()
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
     }
 
     tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = "UTF-8"
         it.options.release = 21
     }
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                artifactId = base.archivesName.get()
-                from components.java
-            }
-        }
-        repositories {
-            // Add publishing repositories here if needed.
+    // Common setup for JAR naming
+    // We can't access ext.getVersion here easily because it's defined in the closure?
+    // Let's just use the catalog directly.
+    
+    base {
+        archivesName = "${rootProject.mod_id}-${project.name}-${libsCatalog.findVersion('minecraft').get().requiredVersion}"
+    }
+
+    // JAR manifest
+    tasks.withType(Jar).configureEach {
+        manifest {
+            attributes([
+                "Specification-Title"     : rootProject.mod_display_name,
+                "Specification-Vendor"    : rootProject.mod_authors,
+                "Specification-Version"   : rootProject.mod_version,
+                "Implementation-Title"    : rootProject.mod_display_name,
+                "Implementation-Version"  : rootProject.mod_version,
+                "Implementation-Vendor"   : rootProject.mod_authors,
+                "Built-On-Minecraft"      : libsCatalog.findVersion('minecraft').get().requiredVersion,
+                "MixinConfigs"            : "${rootProject.mod_id}.mixins.json"
+            ])
         }
     }
-}
 
+    // Property expansion
+    tasks.withType(ProcessResources).configureEach {
+        def expandProps = [
+            "group"                          : project.group,
+            "mod_id"                         : rootProject.mod_id,
+            "mod_display_name"               : rootProject.mod_display_name,
+            "mod_license"                    : rootProject.mod_license,
+            "mod_authors"                    : rootProject.mod_authors,
+            "mod_description"                : rootProject.mod_description,
+            "mod_homepage"                   : rootProject.mod_homepage,
+            "mod_issues_tracker"             : rootProject.mod_issues_tracker,
+            "mod_git_repo"                   : rootProject.mod_git_repo,
+
+            "version"                        : rootProject.mod_version,
+            "java_version"                   : libsCatalog.findVersion('java').get().requiredVersion,
+
+            "minecraft_version"              : libsCatalog.findVersion('minecraft').get().requiredVersion,
+            "minecraft_version_range"        : libsCatalog.findVersion('minecraft-range').get().requiredVersion,
+
+            "fabric_api_version"             : libsCatalog.findVersion('fabric-api').get().requiredVersion,
+            "fabric_api_version_range"       : libsCatalog.findVersion('fabric-api-range').get().requiredVersion,
+            "fabric_loader_version"          : libsCatalog.findVersion('fabric').get().requiredVersion,
+            "fabric_loader_version_range"    : libsCatalog.findVersion('fabric-range').get().requiredVersion,
+
+            "neoforge_version"               : libsCatalog.findVersion('neoforge').get().requiredVersion,
+            "neoforge_version_range"         : libsCatalog.findVersion('neoforge-range').get().requiredVersion,
+            "neoforge_loader_version_range"  : libsCatalog.findVersion('neoforge-loader-range').get().requiredVersion
+        ]
+
+        def strategy = duplicatesStrategy
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        filesMatching(["pack.mcmeta", "fabric.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml"]) {
+            expand(expandProps)
+        }
+
+        duplicatesStrategy = strategy
+
+        inputs.properties(expandProps)
+    }
+}
