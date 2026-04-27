@@ -21,12 +21,12 @@ A powerful, server-sided overhaul for the Minecraft beacon system. Better Beacon
 
 ### Fabric
 1. Install [Fabric Loader](https://fabricmc.net/).
-2. Drop the `betterbeacons-fabric-1.21.11.jar` into your `mods` folder.
+2. Drop the `betterbeacons-fabric-1.20.1.jar` into your `mods` folder.
 3. Ensure [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) is present.
 
-### NeoForge
-1. Install [NeoForge](https://neoforged.net/).
-2. Drop the `betterbeacons-neoforge-1.21.11.jar` into your `mods` folder.
+### Forge
+1. Install [Forge](https://files.minecraftforge.net/).
+2. Drop the `betterbeacons-forge-1.20.1.jar` into your `mods` folder.
 
 ## Configuration
 

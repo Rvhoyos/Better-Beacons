@@ -2,16 +2,15 @@ package mc.betterbeacons.beacons;
 
 import mc.betterbeacons.config.BeaconConfig;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
+import javax.annotation.Nullable;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,8 +50,8 @@ public class BeaconManager {
      * @param secondary The secondary effect.
      */
     public void updateBeaconRegistration(Level level, BlockPos pos, int levels, 
-                                        @Nullable Holder<MobEffect> primary, 
-                                        @Nullable Holder<MobEffect> secondary) {
+                                        @Nullable MobEffect primary, 
+                                        @Nullable MobEffect secondary) {
         if (level.isClientSide()) return;
 
         if (levels > 0 && primary != null) {
@@ -67,12 +66,12 @@ public class BeaconManager {
                         primary,
                         secondary);
 
-                register(pos, level.dimension().identifier().toString(), info);
+                register(pos, level.dimension().location().toString(), info);
             } else {
-                unregister(pos, level.dimension().identifier().toString());
+                unregister(pos, level.dimension().location().toString());
             }
         } else {
-            unregister(pos, level.dimension().identifier().toString());
+            unregister(pos, level.dimension().location().toString());
         }
     }
 
@@ -150,7 +149,7 @@ public class BeaconManager {
 
             net.minecraft.server.level.ServerLevel level = null;
             for (net.minecraft.server.level.ServerLevel world : server.getAllLevels()) {
-                if (world.dimension().identifier().toString().equals(dimId)) {
+                if (world.dimension().location().toString().equals(dimId)) {
                     level = world;
                     break;
                 }
@@ -182,7 +181,7 @@ public class BeaconManager {
      * Applies configured beacon effects to a player if they are within the chunk-based radius.
      */
     private void applyEffectsToPlayer(ServerPlayer player) {
-        String dimId = player.level().dimension().identifier().toString();
+        String dimId = player.level().dimension().location().toString();
         if (!activeBeacons.containsKey(dimId))
             return;
 

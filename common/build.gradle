@@ -1,33 +1,36 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
-
 plugins {
-    alias(libs.plugins.moddevgradle)
+    id 'multiloader-common'
+    id 'net.neoforged.moddev.legacyforge'
 }
 
-def libsCatalog = project.extensions.getByType(VersionCatalogsExtension).named("libs")
-
-neoForge {
-    neoFormVersion = libsCatalog.findVersion('neoform').get().requiredVersion
-
+legacyForge {
+    mcpVersion = minecraft_version
     if (file("src/main/resources/META-INF/accesstransformer.cfg").exists()) {
-        accessTransformers.files.from(file("src/main/resources/META-INF/accesstransformer.cfg"))
-        validateAccessTransformers = true
+        accessTransformers = ["src/main/resources/META-INF/accesstransformer.cfg"]
     }
-
-    parchment.minecraftVersion = libsCatalog.findVersion('parchment-minecraft').get().requiredVersion
-    parchment.mappingsVersion = libsCatalog.findVersion('parchment').get().requiredVersion
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
 }
 
 dependencies {
-    compileOnly(libs.mixin)
-    compileOnly(libs.mixinextras.common)
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifactId = base.archivesName.get()
-        }
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
     }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
