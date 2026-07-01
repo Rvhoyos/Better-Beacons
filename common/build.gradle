@@ -1,33 +1,12 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension
-
 plugins {
-    alias(libs.plugins.moddevgradle)
+    id 'net.neoforged.moddev'
 }
 
-def libsCatalog = project.extensions.getByType(VersionCatalogsExtension).named("libs")
-
 neoForge {
-    neoFormVersion = libsCatalog.findVersion('neoform').get().requiredVersion
-
-    if (file("src/main/resources/META-INF/accesstransformer.cfg").exists()) {
-        accessTransformers.files.from(file("src/main/resources/META-INF/accesstransformer.cfg"))
-        validateAccessTransformers = true
-    }
-
-    parchment.minecraftVersion = libsCatalog.findVersion('parchment-minecraft').get().requiredVersion
-    parchment.mappingsVersion = libsCatalog.findVersion('parchment').get().requiredVersion
+    neoFormVersion = rootProject.neoform_version
 }
 
 dependencies {
-    compileOnly(libs.mixin)
-    compileOnly(libs.mixinextras.common)
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifactId = base.archivesName.get()
-        }
-    }
+    compileOnly "org.spongepowered:mixin:0.8.7"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 }

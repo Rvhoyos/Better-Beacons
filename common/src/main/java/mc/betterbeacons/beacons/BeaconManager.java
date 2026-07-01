@@ -189,7 +189,7 @@ public class BeaconManager {
         ChunkPos playerChunk = player.chunkPosition();
 
         for (BeaconInfo beacon : activeBeacons.get(dimId).values()) {
-            ChunkPos beaconChunk = new ChunkPos(beacon.pos());
+            ChunkPos beaconChunk = ChunkPos.containing(beacon.pos());
             
             int radius = beacon.radius();
             if (beacon.weakestBlockId() != null) {
@@ -202,8 +202,8 @@ public class BeaconManager {
             }
 
             if (radius >= 0 && 
-                    Math.abs(playerChunk.x - beaconChunk.x) <= radius &&
-                    Math.abs(playerChunk.z - beaconChunk.z) <= radius) {
+                    Math.abs(playerChunk.x() - beaconChunk.x()) <= radius &&
+                    Math.abs(playerChunk.z() - beaconChunk.z()) <= radius) {
 
                 int duration = 300;
 
