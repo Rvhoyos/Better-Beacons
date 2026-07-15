@@ -10,7 +10,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -25,10 +25,17 @@ import java.util.concurrent.CompletableFuture;
  */
 public class BeaconCommands {
 
+    /**
+     * Registers the {@code /betterbeacons} command tree (reload, list, set, remove).
+     * Requires gamemaster permission level.
+     *
+     * @param dispatcher   The Brigadier command dispatcher.
+     * @param buildContext The registry-aware build context provided by the platform.
+     */
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
                                 CommandBuildContext buildContext) {
         dispatcher.register(Commands.literal("betterbeacons")
-                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("reload")
                         .executes(c -> {
                             BeaconConfig.load();
@@ -50,15 +57,15 @@ public class BeaconCommands {
                             return 1;
                         }))
                 .then(Commands.literal("set")
-                        .then(Commands.argument("block", IdentifierArgument.id())
+                        .then(Commands.argument("block", ResourceLocationArgument.id())
                                 .suggests(BeaconCommands::suggestBlocks)
-                                .executes(c -> setBlock(c.getSource(), IdentifierArgument.getId(c, "block").toString(), 3))
+                                .executes(c -> setBlock(c.getSource(), ResourceLocationArgument.getId(c, "block").toString(), 3))
                                 .then(Commands.argument("radius", IntegerArgumentType.integer(1, 256))
-                                        .executes(c -> setBlock(c.getSource(), IdentifierArgument.getId(c, "block").toString(), IntegerArgumentType.getInteger(c, "radius"))))))
+                                        .executes(c -> setBlock(c.getSource(), ResourceLocationArgument.getId(c, "block").toString(), IntegerArgumentType.getInteger(c, "radius"))))))
                 .then(Commands.literal("remove")
-                        .then(Commands.argument("block", IdentifierArgument.id())
+                        .then(Commands.argument("block", ResourceLocationArgument.id())
                                 .suggests(BeaconCommands::suggestConfiguredBlocks)
-                                .executes(c -> removeBlock(c.getSource(), IdentifierArgument.getId(c, "block").toString())))));
+                                .executes(c -> removeBlock(c.getSource(), ResourceLocationArgument.getId(c, "block").toString())))));
     }
 
     private static CompletableFuture<Suggestions> suggestBlocks(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {

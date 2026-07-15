@@ -67,15 +67,22 @@ public class BeaconManager {
                         primary,
                         secondary);
 
-                register(pos, level.dimension().identifier().toString(), info);
+                register(pos, level.dimension().location().toString(), info);
             } else {
-                unregister(pos, level.dimension().identifier().toString());
+                unregister(pos, level.dimension().location().toString());
             }
         } else {
-            unregister(pos, level.dimension().identifier().toString());
+            unregister(pos, level.dimension().location().toString());
         }
     }
 
+    /**
+     * Registers a beacon in the management map.
+     *
+     * @param pos         The position of the beacon.
+     * @param dimensionId The string identifier of the dimension.
+     * @param info        The beacon state to store.
+     */
     private void register(BlockPos pos, String dimensionId, BeaconInfo info) {
         activeBeacons.computeIfAbsent(dimensionId, k -> new ConcurrentHashMap<>()).put(pos, info);
     }
@@ -150,7 +157,7 @@ public class BeaconManager {
 
             net.minecraft.server.level.ServerLevel level = null;
             for (net.minecraft.server.level.ServerLevel world : server.getAllLevels()) {
-                if (world.dimension().identifier().toString().equals(dimId)) {
+                if (world.dimension().location().toString().equals(dimId)) {
                     level = world;
                     break;
                 }
@@ -182,14 +189,14 @@ public class BeaconManager {
      * Applies configured beacon effects to a player if they are within the chunk-based radius.
      */
     private void applyEffectsToPlayer(ServerPlayer player) {
-        String dimId = player.level().dimension().identifier().toString();
+        String dimId = player.level().dimension().location().toString();
         if (!activeBeacons.containsKey(dimId))
             return;
 
         ChunkPos playerChunk = player.chunkPosition();
 
         for (BeaconInfo beacon : activeBeacons.get(dimId).values()) {
-            ChunkPos beaconChunk = ChunkPos.containing(beacon.pos());
+            ChunkPos beaconChunk = new ChunkPos(beacon.pos());
             
             int radius = beacon.radius();
             if (beacon.weakestBlockId() != null) {
@@ -202,8 +209,8 @@ public class BeaconManager {
             }
 
             if (radius >= 0 && 
-                    Math.abs(playerChunk.x() - beaconChunk.x()) <= radius &&
-                    Math.abs(playerChunk.z() - beaconChunk.z()) <= radius) {
+                    Math.abs(playerChunk.x - beaconChunk.x) <= radius &&
+                    Math.abs(playerChunk.z - beaconChunk.z) <= radius) {
 
                 int duration = 300;
 

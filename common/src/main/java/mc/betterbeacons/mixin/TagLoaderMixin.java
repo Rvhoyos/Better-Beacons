@@ -1,7 +1,7 @@
 package mc.betterbeacons.mixin;
 
 import mc.betterbeacons.config.BeaconConfig;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagLoader;
 import org.spongepowered.asm.mixin.Final;
@@ -32,12 +32,12 @@ public class TagLoaderMixin {
      */
     @Inject(method = "load", at = @At("RETURN"))
     private void injectCustomBeaconTags(
-            CallbackInfoReturnable<Map<Identifier, List<TagLoader.EntryWithSource>>> cir) {
+            CallbackInfoReturnable<Map<ResourceLocation, List<TagLoader.EntryWithSource>>> cir) {
         
         // In 1.21.x, the directory for block tags is "tags/block"
         if ("tags/block".equals(directory)) {
-            Map<Identifier, List<TagLoader.EntryWithSource>> map = cir.getReturnValue();
-            Identifier beaconTag = Identifier.withDefaultNamespace("beacon_base_blocks");
+            Map<ResourceLocation, List<TagLoader.EntryWithSource>> map = cir.getReturnValue();
+            ResourceLocation beaconTag = ResourceLocation.withDefaultNamespace("beacon_base_blocks");
 
             List<TagLoader.EntryWithSource> newEntries = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class TagLoaderMixin {
             BeaconConfig.load();
 
             for (String blockId : BeaconConfig.BEACON_BLOCK_SIZES.keySet()) {
-                Identifier loc = Identifier.tryParse(blockId);
+                ResourceLocation loc = ResourceLocation.tryParse(blockId);
                 if (loc != null) {
                     // Inject as an OPTIONAL element entry. 
                     // This prevents "missing reference" errors during initial bootstrap 
