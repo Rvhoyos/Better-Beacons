@@ -7,7 +7,7 @@ modId = "betterbeacons"
 version = "${version}"
 displayName = "Better Beacons"
 authors = "Monte_Carlo_Simulations"
-logoFile = "icon.png"
+iconFile = "icon.png"
 description = '''
 A standalone overhaul for the Minecraft beacon system.
 '''
@@ -15,14 +15,14 @@ A standalone overhaul for the Minecraft beacon system.
 [[dependencies.betterbeacons]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.1.2,)"
+versionRange = "[26.2,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.betterbeacons]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26.1.2,)"
+versionRange = "[26.2,)"
 ordering = "NONE"
 side = "BOTH"
 
