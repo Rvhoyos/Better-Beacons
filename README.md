@@ -1,6 +1,6 @@
 # Better Beacons
 
-A powerful, server-sided overhaul for the Minecraft beacon system. Better Beacons allows you to customize the effective range of beacons based on the blocks used in their pyramid, supporting "absurd" ranges across entire dimensions.
+A server-sided overhaul for the Minecraft beacon system. Better Beacons allows you to customize the effective range of beacons based on the blocks used in their pyramid, supporting "absurd" ranges across entire dimensions.
 
 ## Features
 
@@ -21,12 +21,12 @@ A powerful, server-sided overhaul for the Minecraft beacon system. Better Beacon
 
 ### Fabric
 1. Install [Fabric Loader](https://fabricmc.net/).
-2. Drop the `betterbeacons-fabric-1.21.11.jar` into your `mods` folder.
+2. Drop the `betterbeacons-fabric` jar into your `mods` folder.
 3. Ensure [Fabric API](https://www.curseforge.com/minecraft/mc-mods/fabric-api) is present.
 
 ### NeoForge
 1. Install [NeoForge](https://neoforged.net/).
-2. Drop the `betterbeacons-neoforge-1.21.11.jar` into your `mods` folder.
+2. Drop the `betterbeacons-neoforge` jar into your `mods` folder.
 
 ## Configuration
 

@@ -53,7 +53,7 @@ public enum BeaconTier {
     public int getChunkRadius() {
         // Read from config. Default to hardcoded values if missing (safe fallback)
         int size = mc.betterbeacons.config.BeaconConfig.BEACON_BLOCK_SIZES.getOrDefault(this.name().toLowerCase(), 3);
-        // Radius = (Size - 1) / 2. e.g. Size 3 -> Radius 1. Size 9 -> Radius 4.
+        // Radius = (Size - 1) / 2, so size 3 gives radius 1 and size 9 gives radius 4.
         return Math.max(0, (size - 1) / 2);
     }
 }

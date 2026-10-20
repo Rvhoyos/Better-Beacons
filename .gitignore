@@ -27,14 +27,8 @@ bin/
 architectury-cache/
 loom-cache/
 
-# Claude Code
-CLAUDE.md
-.cache/
-
 # Project Specific
-config/
-**/config/
+/config/
 betterbeacons.json
-.envrc
 *.log
 *.log.gz
