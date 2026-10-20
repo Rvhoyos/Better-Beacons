@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Mixin to intercept vanilla beacon behavior and inject custom effect
  * management and rendering logic.
- * Hardened to avoid early registry access which causes NeoForge bootstrap issues.
+ * Avoids early registry access, which causes NeoForge bootstrap issues.
  */
 @Mixin(BeaconBlockEntity.class)
 public abstract class BeaconBlockEntityMixin {

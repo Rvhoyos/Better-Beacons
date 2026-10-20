@@ -15,14 +15,14 @@ A standalone overhaul for the Minecraft beacon system.
 [[dependencies.betterbeacons]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.2,)"
+versionRange = "[26.3,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.betterbeacons]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26.2,)"
+versionRange = "[26.3,26.4)"
 ordering = "NONE"
 side = "BOTH"
 
